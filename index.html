@@ -1,0 +1,94 @@
+<!-- Made By DanK314, 2025 12 17-->
+<!-- version : 1.0 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>밀루의 "험난한" 산책</title>
+	<meta name="description" content="점프와 급강하로 장애물을 피해라! 평원, 숲, 동굴을 넘나드는 스릴 만점 러닝 게임.">
+	<meta name="keywords" content="게임, 웹게임, 러닝게임, 자바스크립트, 밀루, Milloo, Game">
+	<meta name="author" content="초6 천재 개발자">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="밀루의 대모험 (Milloo's Adventure)">
+	<meta property="og:description" content="지금 바로 도전하세요! 당신의 최고 기록은?">
+	<meta property="og:image" content="Images/Milloo_Walk_0.png">
+	<meta property="og:url" content="https://your-game-url.com">
+	<link rel="icon" href="Images/Milloo_Walk_0.png" type="image/png">
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+	<header>
+		<h1>밀루의 "험난한" 산책</h1>
+	</header>
+
+	<main>
+		<div id="gameContainer">
+			<canvas id="gameCanvas" width="800" height="450"></canvas>
+
+			<div id="introScreen" class="Intro">
+				<h2>산책 코스를 선택하세요</h2>
+
+				<div class="level-select-group">
+					<button class="btn-level selected" data-level="PLAINS" style="border-color: #4CAF50;">
+						🌿 평원<br><span class="desc">(튜토리얼)</span>
+					</button>
+					<button class="btn-level" data-level="FOREST" style="border-color: #795548;">
+						🌲 숲<br><span class="desc">(기초)</span>
+					</button>
+					<button class="btn-level" data-level="CAVE" style="border-color: #673AB7;">
+						🦇 동굴<br><span class="desc">(고급)</span>
+					</button>
+				</div>
+
+				<div class="action-buttons">
+					<button id="startButton" class="btn-start">산책 출발!</button>
+					<button id="howToPlayButton" class="btn-info">조작법</button>
+				</div>
+			</div>
+
+			<div id="helpScreen" class="Overlay">
+				<div class="popup-content">
+					<h2>🎮 조작 방법</h2>
+					<p>
+						<strong>[SPACE]</strong> 또는 <strong>[↑]</strong> 또는 <strong>클릭</strong> : 점프<br>
+						공중에서 한 번 더 : <strong>급강하</strong><br>
+						<br>
+						<strong>평원:</strong> 참 쉽~죠?<br>
+						<strong>숲:</strong> 기본적인 컨트롤이 필요합니다.<br>
+						<strong>동굴:</strong> 숲이 기초로 느껴질 정도의 극한 컨트롤이 필요합니다.
+					</p>
+					<button id="closeHelpButton" class="btn-close">닫기</button>
+				</div>
+			</div>
+
+			<div id="gameOverScreen" class="Overlay">
+				<div class="popup-content">
+					<h2 style="color: #FF0000;">GAME OVER</h2>
+					<p id="finalScoreText" style="font-size: 1.5em; font-weight: bold;">Score: 0</p>
+					<p id="rankDisplay" style="color: #FFD700; font-size: 24px; font-weight: bold;">
+						랭킹 계산 중...
+					</p>
+					<div class="button-group">
+						<button id="retryButton" class="btn-retry">다시 하기</button>
+						<button id="homeButton" class="btn-home">코스 다시 고르기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<footer>
+		<p>© 2025 밀루의 험난한 산책</p>
+		<p>Made By Dan_K314</p>
+		<p>Music by <strong>F-777</strong> : deadlocked(full ver.)</p>
+	</footer>
+
+	<script src="game.js"></script>
+</body>
+
+</html>
