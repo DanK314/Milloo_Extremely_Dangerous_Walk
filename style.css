@@ -219,3 +219,94 @@ footer {
 	color: #888;
 	font-size: 0.9em;
 }
+/* --- 도전과제 UI 스타일 --- */
+
+/* 1. 도전과제 알림 팝업 (Toast) */
+#achievementToast {
+	position: absolute;
+	top: 20px;
+	left: 50%;
+	transform: translateX(-50%) translateY(-100px);
+	/* 처음엔 위로 숨김 */
+	background: rgba(0, 0, 0, 0.9);
+	border: 2px solid #FFD700;
+	color: white;
+	padding: 15px 25px;
+	border-radius: 30px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	z-index: 100;
+	transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	pointer-events: none;
+	/* 클릭 방지 */
+	min-width: 300px;
+}
+
+#achievementToast.show {
+	transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+	font-size: 30px;
+}
+
+.toast-text h4 {
+	margin: 0;
+	color: #FFD700;
+	font-size: 14px;
+}
+
+.toast-text p {
+	margin: 5px 0 0 0;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+/* 2. 도전과제 목록 화면 */
+#achievementList {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	/* 2열 배치 */
+	gap: 10px;
+	width: 80%;
+	max-height: 60%;
+	overflow-y: auto;
+	margin-bottom: 20px;
+}
+
+.ach-item {
+	background: #333;
+	padding: 10px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: 1px solid #555;
+	opacity: 0.5;
+	/* 기본은 잠겨있음 */
+	transition: 0.3s;
+}
+
+.ach-item.unlocked {
+	opacity: 1;
+	border-color: #FFD700;
+	background: #444;
+	box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.ach-icon {
+	font-size: 24px;
+}
+
+.ach-info h4 {
+	margin: 0;
+	font-size: 14px;
+	color: #fff;
+}
+
+.ach-info p {
+	margin: 3px 0 0 0;
+	font-size: 11px;
+	color: #aaa;
+}
