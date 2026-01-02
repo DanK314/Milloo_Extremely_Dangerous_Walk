@@ -1,6 +1,4 @@
-<!-- Made By DanK314, 2025 12 17-->
-<!-- version : 1.0 -->
-
+<!-- VERSION 2.0-->
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -10,7 +8,7 @@
 	<title>밀루의 "험난한" 산책</title>
 	<meta name="description" content="점프와 급강하로 장애물을 피해라! 평원, 숲, 동굴을 넘나드는 스릴 만점 러닝 게임.">
 	<meta name="keywords" content="게임, 웹게임, 러닝게임, 자바스크립트, 밀루, Milloo, Game">
-	<meta name="author" content="초6 천재 개발자">
+	<meta name="author" content="Dan_K314">
 	<meta property="og:type" content="website">
 	<meta property="og:title" content="밀루의 대모험 (Milloo's Adventure)">
 	<meta property="og:description" content="지금 바로 도전하세요! 당신의 최고 기록은?">
@@ -48,10 +46,12 @@
 				<div class="action-buttons">
 					<button id="startButton" class="btn-start">산책 출발!</button>
 					<button id="howToPlayButton" class="btn-info">조작법</button>
+					<button id="achievementBtn" class="btn-secondary" style="background-color: #FFC107; color: #000;">🏆
+						업적</button>
 				</div>
 			</div>
 
-			<div id="helpScreen" class="Overlay">
+			<div id="helpScreen" class="Overlay" style="display: none;">
 				<div class="popup-content">
 					<h2>🎮 조작 방법</h2>
 					<p>
@@ -66,7 +66,7 @@
 				</div>
 			</div>
 
-			<div id="gameOverScreen" class="Overlay">
+			<div id="gameOverScreen" class="Overlay" style="display: none;">
 				<div class="popup-content">
 					<h2 style="color: #FF0000;">GAME OVER</h2>
 					<p id="finalScoreText" style="font-size: 1.5em; font-weight: bold;">Score: 0</p>
@@ -77,6 +77,24 @@
 						<button id="retryButton" class="btn-retry">다시 하기</button>
 						<button id="homeButton" class="btn-home">코스 다시 고르기</button>
 					</div>
+				</div>
+			</div>
+
+			<div id="achievementToast">
+				<div class="toast-icon">🏆</div>
+				<div class="toast-text">
+					<h4>도전과제 달성!</h4>
+					<p id="toastMessage">업적 이름</p>
+				</div>
+			</div>
+
+			<div id="achievementScreen" class="Overlay" style="display: none;">
+				<div class="popup-content">
+					<h2>🏆 도전과제</h2>
+					<div id="achievementList">
+						<p>달성한 업적이 없습니다.</p>
+					</div>
+					<button id="closeAchBtn" class="btn-close">닫기</button>
 				</div>
 			</div>
 		</div>
