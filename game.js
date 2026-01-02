@@ -69,6 +69,110 @@ meowingSound.volume = 0.2;
 //소리 배속 조정
 meowingSound.playbackRate = 1.5;
 // ==============================
+// ==============================
+// 0. 도전과제 & 통계 설정
+// ==============================
+const ACHIEVEMENTS = [
+	{ id: 'PLAIN_RUNNER', icon: '🐾', title: '평원의 러너 강아지', desc: '평원에서 1000점 달성' },
+	{ id: 'FOREST_EXPLORER', icon: '🌲', title: '숲 탐험가', desc: '숲에서 750점 달성' },
+	{ id: 'INTO_THE_DARK', icon: '⚫️', title: '어둠 속으로', desc: '동굴에서 500점 달성' },
+	{ id: 'FAIL_100', icon: '☹️', title: '실패는 성공의 어머니', desc: '총 100번 게임오버 달성' },
+	{ id: 'DRILL', icon: '🪏', title: '굴착기', desc: '총 1000번 급강하 사용' },
+	{ id: 'SONIC_BOOM', icon: '💥', title: '소닉붐', desc: '속도 14 도달' },
+	{ id: 'ETERNAL_POWER', icon: '⚡️', title: '무한한 에너지', desc: '게임의 최고 속도 도달' },
+];
+
+class AchievementManager {
+	constructor() {
+		// 해금된 업적 로드
+		const saved = JSON.parse(localStorage.getItem('milloo_achievements')) || [];
+		this.unlockedIDs = new Set(saved);
+		this.toastTimer = null;
+
+		// 통계 로드 (누적 횟수용)
+		this.stats = {
+			deaths: parseInt(localStorage.getItem('milloo_stat_deaths')) || 0,
+			dives: parseInt(localStorage.getItem('milloo_stat_dives')) || 0
+		};
+	}
+
+	unlock(id) {
+		if (this.unlockedIDs.has(id)) return;
+
+		const ach = ACHIEVEMENTS.find(a => a.id === id);
+		if (!ach) return;
+
+		this.unlockedIDs.add(id);
+		localStorage.setItem('milloo_achievements', JSON.stringify([...this.unlockedIDs]));
+		this.showToast(ach);
+	}
+
+	// [추가] 통계 업데이트 함수
+	incrementStat(type, amount = 1) {
+		if (type === 'DEATH') {
+			this.stats.deaths += amount;
+			localStorage.setItem('milloo_stat_deaths', this.stats.deaths);
+			if (this.stats.deaths >= 100) this.unlock('FAIL_100');
+		}
+		else if (type === 'DIVE') {
+			this.stats.dives += amount;
+			localStorage.setItem('milloo_stat_dives', this.stats.dives);
+			if (this.stats.dives >= 1000) this.unlock('DRILL');
+		}
+	}
+
+	showToast(ach) {
+		const toast = document.getElementById('achievementToast');
+		const msg = document.getElementById('toastMessage');
+		const icon = toast.querySelector('.toast-icon');
+
+		// 없으면 무시 (HTML이 로드 안 된 경우)
+		if (!toast || !msg) return;
+
+		msg.innerText = ach.title;
+		icon.innerText = ach.icon;
+
+		toast.classList.add('show');
+
+		// 딩동~ 소리 (선택 사항)
+		// if(typeof itemSound !== 'undefined') { ... }
+
+		if (this.toastTimer) clearTimeout(this.toastTimer);
+		this.toastTimer = setTimeout(() => {
+			toast.classList.remove('show');
+		}, 3000);
+	}
+
+	renderUI() {
+		const list = document.getElementById('achievementList');
+		if (!list) return;
+		list.innerHTML = '';
+
+		ACHIEVEMENTS.forEach(ach => {
+			const isUnlocked = this.unlockedIDs.has(ach.id);
+			const div = document.createElement('div');
+			div.className = `ach-item ${isUnlocked ? 'unlocked' : ''}`;
+
+			// 진행도 표시 (100번 죽기, 1000번 급강하)
+			let progressText = "";
+			if (!isUnlocked) {
+				if (ach.id === 'FAIL_100') progressText = ` (${this.stats.deaths}/100)`;
+				if (ach.id === 'DRILL') progressText = ` (${this.stats.dives}/1000)`;
+			}
+
+			div.innerHTML = `
+                <div class="ach-icon">${isUnlocked ? ach.icon : '🔒'}</div>
+                <div class="ach-info">
+                    <h4>${ach.title}</h4>
+                    <p>${ach.desc}${progressText}</p>
+                </div>
+            `;
+			list.appendChild(div);
+		});
+	}
+}
+
+const achievementManager = new AchievementManager();
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -698,13 +802,19 @@ class Game {
 	}
 
 	triggerJump() {
+		// inputJump()가 false를 반환하면 '급강하(Dive)' 상태입니다.
 		const isJump = this.player.inputJump();
+
 		if (isJump) {
+			// 점프 로직 (기존 코드)
 			if (typeof jumpSound !== 'undefined') {
 				jumpSound.currentTime = 0;
 				jumpSound.play().catch(() => { });
 			}
 			this.spawnParticles(this.player.x + this.player.w / 2, this.player.y + this.player.h, '#FFF', 10, 'JUMP');
+		} else {
+			// [추가] 급강하 시 통계 증가
+			achievementManager.incrementStat('DIVE');
 		}
 	}
 
@@ -851,9 +961,30 @@ class Game {
 
 		if (!this.isDead) {
 			this.score++;
+			const currentDisplayScore = Math.floor(this.score / 10);
 			this.player.update(this);
 			this.updateWarningSequence();
+			// --- [추가] 실시간 업적 체크 ---
 
+			// 1. 점수 관련 업적
+			if (currentLevelKey === 'PLAINS' && currentDisplayScore >= 1000) {
+				achievementManager.unlock('PLAIN_RUNNER');
+			}
+			if (currentLevelKey === 'FOREST' && currentDisplayScore >= 750) {
+				achievementManager.unlock('FOREST_EXPLORER');
+			}
+			if (currentLevelKey === 'CAVE' && currentDisplayScore >= 500) {
+				achievementManager.unlock('INTO_THE_DARK');
+			}
+
+			// 2. 속도 관련 업적 (부동소수점 오차 고려하여 약간의 여유를 둠)
+			if (this.gameSpeed >= 14) {
+				achievementManager.unlock('SONIC_BOOM');
+			}
+			if (this.gameSpeed >= 16 - 0.1) {
+				achievementManager.unlock('ETERNAL_POWER');
+			}
+			// -----------------------------
 			this.spawnTimer++;
 			let interval = 90;
 			if (this.spawnTimer > interval) {
@@ -992,7 +1123,7 @@ class Game {
 	triggerGameOverSequence() {
 		this.isDead = true;
 		this.shakeTime = 20;
-
+		achievementManager.incrementStat('DEATH');
 		this.bgm.pause();
 		if (typeof crashSound !== 'undefined') {
 			crashSound.currentTime = 0;
@@ -1047,17 +1178,25 @@ class Game {
 		let message = `[${this.levelConfig.name}] 최종 점수: ${this.finalScore}`;
 		message += this.unlockMessage;
 		if (this.isNewRecord) message += `\n🏆 NEW RECORD! 🏆`;
-		if(currentLevelKey !== 'PLAINS') this.sendScore(this.finalScore);
+		this.sendScore(this.finalScore);
 		finalScoreText.innerText = message;
 		gameOverScreen.style.display = 'flex';
 	}
 	sendScore(score) {
+		const S = score;
+		this.score = null;
+		this.finalScore = null;
 		// 1. 화면에 로딩 표시
 		const rankText = document.getElementById('rankDisplay');
 		if (rankText) {
+			if(currentLevelKey === 'PLAINS') {
+				rankText.innerText = "";
+				return;
+			}
 			rankText.innerText = "📡 랭킹 등록 중...";
 			rankText.style.color = "#AAAAAA";
 		}
+		// 2. 서버에 점수 전송
 
 		// ⚠️ 주소 뒤에 '/submit'을 꼭 붙여야 합니다!
 		const serverURL = "https://spaceship-adventure-server.onrender.com/submit";
@@ -1067,7 +1206,7 @@ class Game {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				game_id: "Milloo_Extremely_Dangerous_Walk_"+currentLevelKey, // 게임 ID는 마음대로
-				score: score
+				score: S
 			})
 		})
 			.then(response => response.json())
@@ -1097,35 +1236,72 @@ class Game {
 // ==============================
 // 6. 이벤트 리스너
 // ==============================
-const game = new Game(canvas, ctx);
+const START = () => {
+	const game = new Game(canvas, ctx);
 
-levelBtns.forEach(btn => {
-	btn.addEventListener('click', () => {
-		if (btn.classList.contains('locked')) return;
-		levelBtns.forEach(b => b.classList.remove('selected'));
-		btn.classList.add('selected');
-		currentLevelKey = btn.dataset.level;
+	levelBtns.forEach(btn => {
+		btn.addEventListener('click', () => {
+			if (btn.classList.contains('locked')) return;
+			levelBtns.forEach(b => b.classList.remove('selected'));
+			btn.classList.add('selected');
+			currentLevelKey = btn.dataset.level;
+		});
 	});
-});
 
-startBtn.addEventListener('click', () => game.setup());
+	startBtn.addEventListener('click', () => game.setup());
 
-howToPlayBtn.addEventListener('click', () => {
-	introScreen.style.display = 'none';
-	helpScreen.style.display = 'flex';
-});
+	howToPlayBtn.addEventListener('click', () => {
+		introScreen.style.display = 'none';
+		helpScreen.style.display = 'flex';
+	});
 
-closeHelpBtn.addEventListener('click', () => {
-	helpScreen.style.display = 'none';
-	introScreen.style.display = 'flex';
-});
+	closeHelpBtn.addEventListener('click', () => {
+		helpScreen.style.display = 'none';
+		introScreen.style.display = 'flex';
+	});
 
-retryBtn.addEventListener('click', () => game.setup());
+	retryBtn.addEventListener('click', () => game.setup());
 
-homeBtn.addEventListener('click', () => {
-	game.bgm.pause();
-	game.bgm.currentTime = 0;
-	gameOverScreen.style.display = 'none';
-	introScreen.style.display = 'flex';
-	game.drawBackground();
-});
+	homeBtn.addEventListener('click', () => {
+		game.bgm.pause();
+		game.bgm.currentTime = 0;
+		gameOverScreen.style.display = 'none';
+		introScreen.style.display = 'flex';
+		game.drawBackground();
+	});
+	// --- [추가] 업적 버튼 & 팝업 관련 이벤트 ---
+
+	const achBtn = document.getElementById('achievementBtn');      // 업적 버튼
+	const achScreen = document.getElementById('achievementScreen'); // 업적 화면
+	const closeAchBtn = document.getElementById('closeAchBtn');    // 닫기 버튼
+
+	// 1. 업적 버튼 클릭 시 -> 화면 열기
+	if (achBtn && achScreen) {
+		achBtn.addEventListener('click', () => {
+			// 목록 최신화 (이 코드가 있어야 깬 업적이 보임)
+			if (typeof achievementManager !== 'undefined') {
+				achievementManager.renderUI();
+			}
+
+			// 화면 전환 (인트로 숨기고 업적창 띄우기)
+			if (introScreen) introScreen.style.display = 'none';
+			achScreen.style.display = 'flex'; // 혹은 'block'
+		});
+	} else {
+		console.error("업적 버튼이나 화면을 찾을 수 없습니다. HTML ID를 확인하세요.");
+	}
+
+	// 2. 닫기 버튼 클릭 시 -> 원래대로 복귀
+	if (closeAchBtn && achScreen) {
+		closeAchBtn.addEventListener('click', () => {
+			achScreen.style.display = 'none';
+			if (introScreen) introScreen.style.display = 'flex'; // 인트로 다시 보이기
+		});
+	}
+};
+// 👇 여기!
+Object.freeze(Game.prototype);
+window.onload = () => {
+	START();
+	updateLevelButtons();
+};
